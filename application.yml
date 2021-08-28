@@ -1,15 +1,24 @@
+source_list:
+  - SB
+  - OL
+
+SB:
+  mysql_conf:
+    partition_column: App_Transaction_Id
+    query : "(select * from testdb.TRANSACTIONSYNC) as t"
+
+OL:
+  sftp_conf:
+      filetype: csv
+      delimiter: |
+      directory: /home/ubuntu/data
+      filename: receipts_delta_GBR_14_10_2017.csv
+
 s3_conf:
   s3_bucket: mohsinali
+  staging_dir: staging
 
-sftp_conf:
-    filetype: csv
-    delimiter: |
-    directory: /home/ubuntu/data
 
-mysql_conf:
-  dbtable: testdb.TRANSACTIONSYNC
-  partition_column: App_Transaction_Id
-  query : "(select * from testdb.TRANSACTIONSYNC where Internal_Member_Id = 'PC7135361') as t"
 
 mongodb_config:
   database: school

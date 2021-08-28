@@ -2,7 +2,8 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 import os.path
 import yaml
-import utils.aws_utils as ut
+import utils.app_utils as ut
+
 
 if __name__ == '__main__':
 
@@ -38,24 +39,18 @@ if __name__ == '__main__':
         src_conf = app_conf[src]
         stg_path = "s3a://" + app_conf["s3_conf"]["s3_bucket"] + "/" + staging_dir + "/" + src
         if src == 'SB':
+            print("\nReading data from MySQL DB - SB,")
             jdbc_params = {"url": ut.get_mysql_jdbc_url(app_secret),
-                              "lowerBound": "1",
-                              "upperBound": "100",
-                              "dbtable": src_conf["mysql_conf"]["query"],
-                              "numPartitions": "2",
-                              "partitionColumn": src_conf["mysql_conf"]["partition_column"],
-                              "user": app_secret["mysql_conf"]["username"],
-                              "password": app_secret["mysql_conf"]["password"]
-                               }
-            # use the ** operator/un-packer to treat a python dictionary as **kwargs
-            print("\nReading data from MySQL DB using SparkSession.read.format(),")
-            sb_df = spark\
-                .read.format("jdbc")\
-                .option("driver", "com.mysql.cj.jdbc.Driver")\
-                .options(**jdbc_params)\
-                .load()\
+                           "lowerBound": "1",
+                           "upperBound": "100",
+                           "dbtable": app_conf["mysql_conf"]["dbtable"],
+                           "numPartitions": "2",
+                           "partitionColumn": app_conf["mysql_conf"]["partition_column"],
+                           "user": app_secret["mysql_conf"]["username"],
+                           "password": app_secret["mysql_conf"]["password"]
+                           }
+            sb_df = ut.read_from_mysql(jdbc_params, spark)\
                 .withColumn("run_dt", current_date())
-
             sb_df.show()
 
             sb_df.write\
